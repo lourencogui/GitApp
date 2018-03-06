@@ -14,7 +14,7 @@ const Routes = StackNavigator(
   },
 },
   {
-    initialRouteName: 'User',
+    initialRouteName: 'Welcome',
 });
 
 
