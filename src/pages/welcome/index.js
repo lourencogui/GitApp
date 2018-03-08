@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import { NavigationActions } from 'react-navigation';
 import PropTypes from 'prop-types';
+import api from 'services/api';
 import {
   View,
   TextInput,
   Text,
   TouchableOpacity,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import styles from './styles';
 
@@ -21,15 +23,38 @@ export default class Welcome extends Component {
     }).isRequired,
   };
 
-  singIn = () => {
-    const resetAction = NavigationActions.reset({
-      index: 0,
-      actions: [
-        NavigationActions.navigate({ routeName: 'User' }),
-      ],
-    });
+  state = {
+    username: '',
+    loading: false,
+    errorMessage: null,
+  };
 
-    this.props.navigation.dispatch(resetAction);
+  checkUserExists = async (username) => {
+    const user = await api.get(`/users/${username}`);
+    return user;
+  };
+
+  singIn = async () => {
+    const { username } = this.state;
+
+    if (username.length === 0) return;
+
+    this.setState({ loading: true });
+
+    try {
+      await this.checkUserExists(username);
+
+      const resetAction = NavigationActions.reset({
+        index: 0,
+        actions: [
+          NavigationActions.navigate({ routeName: 'User' }),
+        ],
+      });
+
+      this.props.navigation.dispatch(resetAction);
+    } catch (err) {
+      this.setState({ loading: false, errorMessage: 'Usuário não existe'  });
+    }
   };
 
   render() {
@@ -40,6 +65,11 @@ export default class Welcome extends Component {
         <Text style={styles.text}>Para continuar, precisamos que você informe
           seu usuário no GitHub.
         </Text>
+
+        { !!this.state.errorMessage &&
+          <Text style={styles.error}>{this.state.errorMessage}</Text>
+        }
+
         <View style={styles.form}>
           <TextInput
             style={styles.input}
@@ -47,9 +77,14 @@ export default class Welcome extends Component {
             autoCorrect={false}
             placeholder="Digite seu usuário"
             underlineColorAndroid="rgba(0,0,0,0)"
+            value={this.state.username}
+            onChangeText={username => this.setState({ username })}
           />
-          <TouchableOpacity style={styles.button} onpress={this.singIn()}>
-            <Text style={styles.buttonText}>Prosseguir</Text>
+          <TouchableOpacity style={styles.button} onPress={this.singIn}>
+            {
+              this.state.loading ? <ActivityIndicator size="small" color="#FFF" /> :
+              <Text style={ styles.buttonText }>Prosseguir</Text>
+            }
           </TouchableOpacity>
         </View>
       </View >

@@ -45,6 +45,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  error: {
+    color: colors.danger,
+    textAlign: 'center',
+    marginTop: metrics.baseMargin,
+  },
+
   buttonText: {
     color: colors.white,
     fontWeight: 'bold',
